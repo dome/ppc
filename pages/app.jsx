@@ -17,10 +17,10 @@ import PositionSection from "../components/PositionSection.jsx";
 import ErrorSection from "../components/ErrorSection.jsx";
 
 export default function App() {
-  const [fusnBalance, setFusnBalance] = useState(0);
+  const [pptBalance, setPPTBalance] = useState(0);
   const [daiBalance, setDaiBalance] = useState(0);
   const [earnedTokens, setEarnedTokens] = useState(0);
-  const [lendingBalance, setLendingBalance] = useState(0);
+  const [borrowingYield, setBorrowingYield] = useState(0);
   const [borrowBalance, setBorrowBalance] = useState(0);
   const [collateralBalance, setCollateralBalance] = useState(0);
   const [borrowLimit, setBorrowLimit] = useState(0);
@@ -37,7 +37,7 @@ export default function App() {
   const baseAssetAddress = chainId in daiAddress ? daiAddress[chainId] : null;
 
   useEffect(() => {
-    const getFusionBalance = async () => {
+    const getPPTBalance = async () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const tokenContract = new ethers.Contract(
@@ -49,8 +49,8 @@ export default function App() {
       const rawBalance = await tokenContract.balanceOf(address);
       const balance = Number.parseFloat(
         ethers.utils.formatEther(rawBalance)
-      ).toFixed(3);
-      setFusnBalance(balance);
+      ).toFixed(5);
+      setPPTBalance(balance);
     };
     const getDaiBalance = async () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -77,10 +77,10 @@ export default function App() {
       );
       const earnedAmount = Number.parseFloat(
         ethers.utils.formatEther(rawEarnedAmount)
-      ).toFixed(3);
+      ).toFixed(5);
       setEarnedTokens(earnedAmount);
     };
-    const getLendingBalance = async () => {
+    const getBorrowingYield = async () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const coreContract = new ethers.Contract(
@@ -88,12 +88,13 @@ export default function App() {
         fusionCoreAbi,
         signer
       );
-      const address = await signer.getAddress();
-      const rawAmount = await coreContract.getLendingBalance(address);
+      const rawAmount = await coreContract.getYield();
+      console.log(rawAmount);
       const amount = Number.parseFloat(
-        ethers.utils.formatEther(rawAmount)
-      ).toFixed(3);
-      setLendingBalance(amount);
+        (rawAmount)
+      ).toFixed(2);
+      console.log(amount);
+      setBorrowingYield(amount);
     };
     const getBorrowBalance = async () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -175,10 +176,10 @@ export default function App() {
       setcollateralPrice(amount);
     };
     if (isWeb3Enabled && coreAddress) {
-      getFusionBalance();
+      getPPTBalance();
       getDaiBalance();
       getEarnedTokens();
-      getLendingBalance();
+      getBorrowingYield();
       getBorrowBalance();
       getCollateralBalance();
       getBorrowLimit();
@@ -203,10 +204,10 @@ export default function App() {
         </header>
         <hr className="border-secondary" />
         <DataSection
-          fusnBalance={fusnBalance}
+          pptBalance={pptBalance}
           daiBalance={daiBalance}
           earnedTokens={earnedTokens}
-          lendingBalance={lendingBalance}
+          borrowingYield={borrowingYield}
           borrowBalance={borrowBalance}
           collateralBalance={collateralBalance}
         />

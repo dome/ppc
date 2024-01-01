@@ -147,22 +147,7 @@ const ControlSection = ({ coreAddress, coreAbi, daiAddress, daiAbi }) => {
   return (
     <Fragment>
       <div className="flex flex-col p-6 bg-gray-900 rounded-lg gap-y-6">
-        <button
-          onClick={() => {
-            setShowLend(true);
-          }}
-          className="py-3.5 rounded-lg w-full border border-secondary text-secondary text-sm font-semibold"
-        >
-          Lend
-        </button>
-        <button
-          onClick={() => {
-            setShowWithdraw(true);
-          }}
-          className="py-3.5 rounded-lg w-full border border-primary text-primary text-sm font-semibold"
-        >
-          Withdraw
-        </button>
+
         <button
           onClick={() => {
             setShowBorrow(true);
@@ -186,90 +171,25 @@ const ControlSection = ({ coreAddress, coreAbi, daiAddress, daiAbi }) => {
           Claim PPT
         </button>
       </div>
-      <Modal
-        isVisible={showLend}
-        onClose={() => {
-          setShowLend(false);
-        }}
-      >
-        <div className="p-6 flex items-center justify-center font-semibold text-xl">
-          <div>Lend PPP</div>
-        </div>
-        <div className="bg-gray-700 my-3 rounded-md px-6 py-4 text-xl flex justify-between">
-          <input
-            type="text"
-            className="bg-transparent placeholder:text-gray-400 outline-none w-full text-xl"
-            placeholder="0.00"
-            ref={lendAmount}
-          />
-          <div className="text-white">PPP</div>
-        </div>
-        <div className="p-8">
-          {!approvedLend ? (
-            <button
-              id="lend"
-              onClick={(event) => {
-                approve(event, lendAmount.current.value);
-              }}
-              className="py-3.5 rounded-lg w-full border border-secondary hover:bg-secondary text-secondary hover:text-white  text-sm font-semibold"
-            >
-              Approve
-            </button>
-          ) : null}
-          {approvedLend ? (
-            <button
-              onClick={lend}
-              className="py-3.5 rounded-lg w-full border border-secondary hover:bg-secondary text-secondary hover:text-white  text-sm font-semibold"
-            >
-              Lend
-            </button>
-          ) : null}
-        </div>
-      </Modal>
-      <Modal
-        isVisible={showWithdraw}
-        onClose={() => {
-          setShowWithdraw(false);
-        }}
-      >
-        <div className="p-6 flex items-center justify-center font-semibold text-xl">
-          <div>Withdraw PPP</div>
-        </div>
-        <div className="bg-gray-700 my-3 rounded-md px-6 py-4 text-xl flex justify-between">
-          <input
-            type="text"
-            className="bg-transparent placeholder:text-gray-400 outline-none w-full text-xl"
-            placeholder="0.00"
-            ref={withdrawAmount}
-          />
-          <div className="text-white">PPP</div>
-        </div>
-        <div className="p-8">
-          <button
-            onClick={withdraw}
-            className="py-3.5 rounded-lg w-full border border-secondary hover:bg-secondary text-secondary hover:text-white  text-sm font-semibold"
-          >
-            Withdraw
-          </button>
-        </div>
-      </Modal>
+
+
       <Modal
         isVisible={showBorrow}
         onClose={() => {
           setShowBorrow(false);
         }}
       >
-        <div className="p-6 flex items-center justify-center font-semibold text-xl">
-          <div>Borrow PPP</div>
+        <div className="flex items-center justify-center p-6 text-xl font-semibold">
+          <div>Borrow PPC</div>
         </div>
-        <div className="bg-gray-700 my-3 rounded-md px-6 py-4 text-xl flex justify-between">
+        <div className="flex justify-between px-6 py-4 my-3 text-xl bg-gray-700 rounded-md">
           <input
             type="text"
-            className="bg-transparent placeholder:text-gray-400 outline-none w-full text-xl"
+            className="w-full text-xl bg-transparent outline-none placeholder:text-gray-400"
             placeholder="0.00"
             ref={borrowAmount}
           />
-          <div className="text-white">PPP</div>
+          <div className="text-white">PPC</div>
         </div>
         <div className="p-8">
           <button
@@ -286,17 +206,17 @@ const ControlSection = ({ coreAddress, coreAbi, daiAddress, daiAbi }) => {
           setShowRepay(false);
         }}
       >
-        <div className="p-6 flex items-center justify-center font-semibold text-xl">
-          <div>Repay PPP</div>
+        <div className="flex items-center justify-center p-6 text-xl font-semibold">
+          <div>Repay PPC</div>
         </div>
-        <div className="bg-gray-700 my-3 rounded-md px-6 py-4 text-xl flex justify-between">
+        <div className="flex justify-between px-6 py-4 my-3 text-xl bg-gray-700 rounded-md">
           <input
             type="text"
-            className="bg-transparent placeholder:text-gray-400 outline-none w-full text-xl"
+            className="w-full text-xl bg-transparent outline-none placeholder:text-gray-400"
             placeholder="0.00"
             ref={repayAmount}
           />
-          <div className="text-white">PPP</div>
+          <div className="text-white">PPC</div>
         </div>
         <div className="p-8">
           {!approvedRepay ? (

@@ -36,7 +36,7 @@ const PositionSection = ({
           <div className="flex items-start gap-x-2">
             <div className="text-sm font-medium text-white">Borrow Limit: </div>
             <div className="text-sm font-medium text-primary">
-              {borrowLimit} PPP
+              {borrowLimit} PPC
             </div>
           </div>
           
