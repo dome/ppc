@@ -31,7 +31,16 @@ contract PointPlusCore is Ownable {
     PointPlusToken public immutable baseAsset;
     PointPlusToken public immutable pointplusToken;
     address public vault;
-    uint256 public yield = 50;
+    uint256 public yield = 50; // 50%
+
+    uint256 constant public BORROW_LIMIT_PERCENT = 60; // 60% (1 = 1%)
+    uint256 constant public LIQUIDATE_POINT_PERCENT = 30; // 30% (1 = 1%)
+
+    uint256 constant public LIQUIDATE_FEE_PERCENT = 125; // 1.25% (100 = 1%)
+
+    uint256 constant public BORROW_FEE_PERCENT = 3; // 0.3% (10 = 1%)
+
+    uint256 constant public SECONDS_IN_YEAR = 31536000;
 
     ///@notice initiating tokens
     ///@param _baseAssetAddress address of base asset token
@@ -56,7 +65,7 @@ contract PointPlusCore is Ownable {
     modifier passedLiquidation(address _borrower) virtual {
         uint256 collatAssetPrice = getCollatAssetPrice();
         require(
-            (collatAssetPrice * collateralBalance[_borrower]) / 10 ** 8 <= calculateLiquidationPoint(_borrower),
+            (collatAssetPrice * collateralBalance[_borrower]) / 1e8 <= calculateLiquidationPoint(_borrower),
             "Position can't be liquidated!"
         );
         _;
@@ -77,34 +86,23 @@ contract PointPlusCore is Ownable {
     }
 
     ///@notice calculates amount of $PPT tokens the borrower has earned since the last update.
-    ///@dev rate = timeStaked / amount of time needed to earn 100% of $PPT tokens. 31536000 = number of seconds in a year.
+    ///@dev rate = timeStaked / amount of time needed to earn 100% of $PPT tokens.
     ///@param _borrower address of borrower
     ///@return _yield amount of $PPT tokens earned by borrower
     function calculateYieldTotal(address _borrower) public view returns (uint256 _yield) {
-        uint256 timeStaked = calculateYieldTime(_borrower) * 10 ** 18;
-        uint256 yieldSec = (31536000 / yield) * 100;
-        if (timeStaked != 0) {
-            _yield = ((borrowBalance[_borrower] * timeStaked) / yieldSec) / 10 ** 18;
-        } else {
-            _yield = 0;
-        }
+        uint256 timeStaked = calculateYieldTime(_borrower);
+        _yield = (borrowBalance[_borrower] * yield * timeStaked) / (100 * SECONDS_IN_YEAR);
     }
 
     ///@notice calculates the borrow limit depending on the price of JBC and borrow limit rate.
     ///@return limit current borrow limit for user
     function calculateBorrowLimit(address _borrower) public view returns (uint256 limit) {
         uint256 collatAssetPrice = getCollatAssetPrice();
-        limit = ((((collatAssetPrice * collateralBalance[_borrower]) * 60) / 100)) / 10 ** 8;
-        if (limit > borrowBalance[_borrower]) {
-            limit =
-                ((((collatAssetPrice * collateralBalance[_borrower]) * 60) / 100)) / 10 ** 8 - borrowBalance[_borrower];
-        } else {
-            limit = 0;
-        }
+        limit = ((((collatAssetPrice * collateralBalance[_borrower]) * BORROW_LIMIT_PERCENT) / 100)) / 1e8 - borrowBalance[_borrower];
     }
 
     function calculateLiquidationPoint(address _borrower) public view returns (uint256 point) {
-        point = borrowBalance[_borrower] + (borrowBalance[_borrower] * 30) / 100;
+        point = borrowBalance[_borrower] + (borrowBalance[_borrower] * LIQUIDATE_POINT_PERCENT) / 100;
     }
 
     ///@notice claims all yield earned by borrower.
@@ -152,7 +150,7 @@ contract PointPlusCore is Ownable {
     ///@param _amount amount of base asset to borrow
     ///@dev deducting 0.3% from msg.sender's JBC collateral as protocol's fees
     function borrow(uint256 _amount) external {
-        collateralBalance[msg.sender] -= (collateralBalance[msg.sender] * 3) / 1000;
+        collateralBalance[msg.sender] -= (collateralBalance[msg.sender] * BORROW_FEE_PERCENT) / 1000;
 
         require(collateralBalance[msg.sender] > 0, "No JBC collateralized!");
 
@@ -161,11 +159,13 @@ contract PointPlusCore is Ownable {
             uint256 _yield = calculateYieldTotal(msg.sender);
             pptBalance[msg.sender] += _yield;
         }
+
+        startTime[msg.sender] = block.timestamp;
         isBorrowing[msg.sender] = true;
         borrowBalance[msg.sender] += _amount;
 
         baseAsset.mint(msg.sender, _amount);
-        (bool success,) = vault.call{value: (collateralBalance[msg.sender] * 3) / 1000}("");
+        (bool success,) = vault.call{value: (collateralBalance[msg.sender] * BORROW_FEE_PERCENT) / 1000}("");
         require(success, "Transaction Failed!");
 
         emit Borrow(msg.sender, _amount);
@@ -199,7 +199,7 @@ contract PointPlusCore is Ownable {
         require(isBorrowing[_borrower], "This address is not borrowing!");
         require(msg.sender != _borrower, "Can't liquidated your own position!");
 
-        uint256 liquidationReward = (collateralBalance[_borrower] * 125) / 10000;
+        uint256 liquidationReward = (collateralBalance[_borrower] * LIQUIDATE_FEE_PERCENT) / 10000;
         (bool success,) = vault.call{value: collateralBalance[_borrower] - liquidationReward}("");
         require(success, "Transaction Failed!");
 
